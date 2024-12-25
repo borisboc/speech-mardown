@@ -2,6 +2,7 @@ import argparse
 from pathlib import Path
 import mimetypes
 from ffmpeg_implementation import FFmpegVideoFileToAudioFile
+from vosk_implementation import VoskAudioFileToTextFile
 
 
 def parse_args():
@@ -15,6 +16,13 @@ def parse_args():
         default=None,
         required=False,
         help="Path to the output markdown file",
+    )
+    parser.add_argument(
+        "--speech-model-name",
+        "-sn",
+        type=str,
+        default="vosk-model-fr-0.22",
+        help="Speech (audio to text) model name. See VOSK documentation. Default is vosk-model-fr-0.22",
     )
 
     args = parser.parse_args()
@@ -54,6 +62,11 @@ def main():
         )
 
     log(f"Processing audio file {audio_filepath}")
+    audio_to_txt = VoskAudioFileToTextFile()
+    ret, txt_filepath = audio_to_txt.to_txt_file(audio_filepath, None, args)
+
+    if ret != 0:
+        raise Exception(f"to_txt_file returned non null code : {ret}")
 
 
 if __name__ == "__main__":
