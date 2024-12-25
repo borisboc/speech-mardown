@@ -1,2 +1,2 @@
 # speech-mardown
-Get the speech from audio (or video), and turn this into markdown. Mainly designed for serious / educationnal purposes 
+Get the speech from audio (or video), and turn this into markdown. Mainly designed for serious / educational purposes 
