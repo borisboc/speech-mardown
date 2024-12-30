@@ -35,7 +35,7 @@ class AudioFileToTextFile:
         log(f"Turning audio file {audio_filepath} into txt file {text_filepath}")
         return (
             self._to_txt_file(audio_filepath, text_filepath, args, **kwargs),
-            audio_filepath,
+            text_filepath,
         )
 
     def _to_txt_file(self, audio_filepath: Path, text_filepath: Path, args, **kwargs):
