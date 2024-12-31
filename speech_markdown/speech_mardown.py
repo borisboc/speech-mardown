@@ -4,7 +4,7 @@ import mimetypes
 from ffmpeg_implementation import FFmpegVideoFileToAudioFile
 from vosk_implementation import VoskAudioFileToTextFile
 from dummy_audio_to_text import DummyAudioFileToTextFile
-from split_text import split_text_file_to_chuncks
+from split_text import split_text_file_to_chunks
 from ollama_implementation import OllamaSurfacing
 from string import Template
 
@@ -30,11 +30,11 @@ def parse_args():
         help="Speech (audio to text) model name. See VOSK documentation. Default is vosk-model-fr-0.22",
     )
     parser.add_argument(
-        "--chunck-size",
+        "--chunk-size",
         type=int,
         default=1000,
         required=False,
-        help="Size of chuncks of characters (from audio) to pass to LLM for rephrasing / surfacing. Default is 1000.",
+        help="Size of chunks of characters (from audio) to pass to LLM for rephrasing / surfacing. Default is 1000.",
     )
 
     args = parser.parse_args()
@@ -81,12 +81,12 @@ def main():
     if ret != 0:
         raise Exception(f"to_txt_file returned non null code : {ret}")
 
-    chunks = split_text_file_to_chuncks(
-        Path(txt_filepath), separator="\n", chunck_size=args.chunck_size
+    chunks = split_text_file_to_chunks(
+        Path(txt_filepath), separator="\n", chunk_size=args.chunk_size
     )
 
     log(
-        f"{len(chunks)} chunks with max size {args.chunck_size} will be rephrased / surfaced by LLM"
+        f"{len(chunks)} chunks with max size {args.chunk_size} will be rephrased / surfaced by LLM"
     )
 
     surfaced_filepath = txt_filepath.parent.joinpath(

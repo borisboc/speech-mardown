@@ -1,7 +1,7 @@
 from pathlib import Path
 
 
-def split_text_file_to_chuncks(txt_filepath: Path, separator="\n", chunck_size=1000):
+def split_text_file_to_chunks(txt_filepath: Path, separator="\n", chunk_size=1000):
     if not txt_filepath.exists():
         raise FileNotFoundError(txt_filepath)
 
@@ -9,19 +9,19 @@ def split_text_file_to_chuncks(txt_filepath: Path, separator="\n", chunck_size=1
         txt = f.read()
 
     split = txt.split(separator)
-    chuncks = []
+    chunks = []
 
-    cur_chunck = ""
+    cur_chunk = ""
     for s in split:
-        len_cur_chunck = len(cur_chunck)
-        if len_cur_chunck == 0:
-            cur_chunck = s
-        elif len(s) + len_cur_chunck < chunck_size:
-            cur_chunck += " " + s
+        len_cur_chunk = len(cur_chunk)
+        if len_cur_chunk == 0:
+            cur_chunk = s
+        elif len(s) + len_cur_chunk < chunk_size:
+            cur_chunk += " " + s
         else:
-            chuncks.append(cur_chunck)
-            cur_chunck = s
+            chunks.append(cur_chunk)
+            cur_chunk = s
 
-    chuncks.append(cur_chunck)
+    chunks.append(cur_chunk)
 
-    return chuncks
+    return chunks
