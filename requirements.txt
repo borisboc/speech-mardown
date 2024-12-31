@@ -1,2 +1,4 @@
 vosk >= 0.3.45
 python-ffmpeg >= 2.0.12
+ollama >= 0.4.5
+tqdm >= 4.67.0
