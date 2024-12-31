@@ -19,7 +19,7 @@ def parse_args():
         type=Path,
         default=None,
         required=False,
-        help="Path to the output markdown file",
+        help="Path to the output text file",
     )
     parser.add_argument(
         "--speech-model-name",
@@ -36,6 +36,27 @@ def parse_args():
         required=False,
         help="Size of chunks of characters (from audio) to pass to LLM for rephrasing / surfacing. Default is 1000.",
     )
+    parser.add_argument(
+        "--llm-model",
+        type=str,
+        default="llama3.2:3b-instruct-fp16",
+        required=False,
+        help="LLM model to use for surfacing / rephrasing (post audio to text).",
+    )
+    parser.add_argument(
+        "--system-message",
+        type=Path,
+        default=Path(__file__).parent.joinpath("prompts/system_message_Fr.txt"),
+        required=False,
+        help="Path to the text file containing the system message (prompt) for surfacing with LLM.",
+    )
+    parser.add_argument(
+        "--user-message-template",
+        type=Path,
+        default=Path(__file__).parent.joinpath("prompts/user_message_template_Fr.txt"),
+        required=False,
+        help="Path to the text file containing the user system message (prompt) templated (e.g. with $USER_MESSAGE) for surfacing with LLM.",
+    )
 
     args = parser.parse_args()
     return args
@@ -45,9 +66,7 @@ def log(message):
     print(message)
 
 
-def main():
-    args = parse_args()
-
+def main(args):
     filepath = Path(args.filepath)
 
     if not filepath.exists():
@@ -76,7 +95,7 @@ def main():
     log(f"Processing audio file {audio_filepath}")
     audio_to_txt = VoskAudioFileToTextFile()
     # audio_to_txt = DummyAudioFileToTextFile()
-    ret, txt_filepath = audio_to_txt.to_txt_file(audio_filepath, None, args)
+    ret, txt_filepath = audio_to_txt.to_txt_file(audio_filepath, args.o, args)
 
     if ret != 0:
         raise Exception(f"to_txt_file returned non null code : {ret}")
@@ -94,29 +113,47 @@ def main():
     )
 
     surfacing = OllamaSurfacing()
-    system_message = "Tu es une intelligence artificielle assistante, experte en relecture et correction orthographique de document."
-    user_template_message = Template(
-        "Agis comme étant un simple programme informatique de traitement de texte."
-        + " Voici mes demandes : tu vas corriger le texte ci dessous en essayant de rester le plus proche possible de celui-ci."
-        + " Tu dois évidemment conserver la langue d'origine du texte : le français."
-        + " Tu rajouteras la ponctuation (virgule et point) et les majuscules (pour le début des nouvelles phrase)."
-        + " Tu corrigeras les fautes d'orthographe et de conjugaison."
-        + " Tu corrigeras les erreurs de vocabulaire qui sont évidentes et indéniables. En cas de doute, tu laisseras le mot d'origine dans le texte."
-        + " Tu ne changeras pas le contenu (hormis les fautes, la ponctuation, les majuscules et les erreurs indéniables sur le vocabulaire)."
-        + " Tu ne supprimeras pas de contenu, même s'il semble inutile."
-        + " Retourne uniquement le texte corrigé."
-        + " Le résultat final sera sous la forme de markdown."
-        + " Voici le texte à modifier :\n"
-        + f"${surfacing.template_user_message}"
-    )
+
+    if not args.system_message.exists():
+        log(
+            f"WARNING : using default LLM system message because cannot find file {args.system_message}"
+        )
+        system_message = "Tu es une intelligence artificielle assistante, experte en relecture et correction orthographique de document."
+    else:
+        with open(args.system_message, "r") as f:
+            system_message = str(f.read())
+
+    if not args.user_message_template.exists():
+        log(
+            f"WARNING : using default LLM user message templated because cannot find file {args.user_message_template}"
+        )
+        user_template_message = Template(
+            "Agis comme étant un simple programme informatique de traitement de texte."
+            + " Voici mes demandes : tu vas corriger le texte ci dessous en essayant de rester le plus proche possible de celui-ci."
+            + " Tu dois évidemment conserver la langue d'origine du texte : le français."
+            + " Tu rajouteras la ponctuation (virgule et point) et les majuscules (pour le début des nouvelles phrase)."
+            + " Tu corrigeras les fautes d'orthographe et de conjugaison."
+            + " Tu corrigeras les erreurs de vocabulaire qui sont évidentes et indéniables. En cas de doute, tu laisseras le mot d'origine dans le texte."
+            + " Tu ne changeras pas le contenu (hormis les fautes, la ponctuation, les majuscules et les erreurs indéniables sur le vocabulaire)."
+            + " Tu ne supprimeras pas de contenu, même s'il semble inutile."
+            + " Retourne uniquement le texte corrigé."
+            + " Le résultat final sera sous la forme de markdown."
+            + " Voici le texte à modifier :\n"
+            + f"${surfacing.template_user_message}"
+        )
+    else:
+        with open(args.user_message_template, "r") as f:
+            user_template_message = Template(f.read())
+
     ret = surfacing.surface_text(
         chunks,
         surfaced_filepath,
-        "llama3.2:3b-instruct-fp16",
+        args.llm_model,
         system_message,
         user_template_message,
     )
 
 
 if __name__ == "__main__":
-    main()
+    args = parse_args()
+    main(args)
