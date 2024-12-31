@@ -22,6 +22,14 @@ def parse_args():
         help="Path to the output text file",
     )
     parser.add_argument(
+        "--lang-settings",
+        "-ls",
+        type=str,
+        default=None,
+        required=False,
+        help="If Fr or En, it will overwrite speech-model-name, system-message, user-message-template values with default models and files appropriate for provided language (i.e. French or English). Default is None : in this case, it does not overwrite the above mentioned arguments.",
+    )
+    parser.add_argument(
         "--speech-model-name",
         "-sn",
         type=str,
@@ -67,6 +75,39 @@ def log(message):
 
 
 def main(args):
+
+    if args.lang_settings is not None:
+        lang_settings = args.lang_settings.lower()
+        if lang_settings == "fr":
+            args.speech_model_name = "vosk-model-fr-0.22"
+            args.system_message = Path(__file__).parent.joinpath(
+                "prompts/system_message_Fr.txt"
+            )
+            args.user_message_template = Path(__file__).parent.joinpath(
+                "prompts/user_message_template_Fr.txt"
+            )
+        elif lang_settings == "en":
+            args.speech_model_name = "vosk-model-en-us-0.22"
+            args.system_message = Path(__file__).parent.joinpath(
+                "prompts/system_message_En.txt"
+            )
+            args.user_message_template = Path(__file__).parent.joinpath(
+                "prompts/user_message_template_En.txt"
+            )
+        else:
+            raise NotImplementedError(
+                f"Language {args.lang_settings} is not implemented"
+            )
+
+        d = {
+            "speech-model-name": args.speech_model_name,
+            "system-message": args.system_message,
+            "user-message-template": args.user_message_template,
+        }
+        log(
+            f"Thanks to provided lang-settings : {args.lang_settings}, the following values have been modified : {d}\nPlease remove lang-settings argument if you don t want these values to be overwritten!"
+        )
+
     filepath = Path(args.filepath)
 
     if not filepath.exists():

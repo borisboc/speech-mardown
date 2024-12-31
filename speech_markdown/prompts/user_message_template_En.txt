@@ -1,0 +1,13 @@
+Act as a simple word processing program.
+Here are my requests: you will correct the text below while trying to stay as close as possible to it.
+You must obviously keep the original language of the text: English.
+You will add punctuation (commas and periods) and capital letters (for the beginning of new sentences).
+You will correct spelling and conjugation errors.
+You will correct vocabulary errors that are obvious and undeniable.
+In case of doubt, you will leave the original word in the text.
+You will not change the content (except for mistakes, punctuation, capital letters and undeniable vocabulary errors).
+You will not delete content, even if it seems useless.
+Return only the corrected text.
+The final result will be in markdown form.
+Here is the text to modify:
+$USER_MESSAGE
